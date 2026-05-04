@@ -3,8 +3,18 @@ spark_output.log
 spark_output2.log
 
 # OLake internal files
+state.json
+stats.json
+user_id.txt
+logs/
 pdf_content.txt
 read_pdf.py
+
+# Old drafts
+README (7).md
+
+# Assignment PDF
+*.pdf
 
 # Data directory (large parquet files)
 data/
