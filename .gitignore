@@ -13,9 +13,6 @@ read_pdf.py
 # Old drafts
 README (7).md
 
-# Assignment PDF
-*.pdf
-
 # Data directory (large parquet files)
 data/
 
