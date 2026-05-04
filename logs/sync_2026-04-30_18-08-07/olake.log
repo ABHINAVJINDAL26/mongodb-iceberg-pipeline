@@ -1,0 +1,1 @@
+{"level":"fatal","time":"2026-04-30T18:08:07Z","message":"error parsing uri: authSource must be non-empty when supplied in a URI"}

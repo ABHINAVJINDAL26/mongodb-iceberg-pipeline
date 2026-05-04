@@ -1,0 +1,94 @@
+version: "3.9"
+
+services:
+
+  # Service 1: MongoDB Source Database (Replica Set required for OLake)
+  mongo1:
+    image: mongo:6.0
+    container_name: primary_mongo
+    hostname: mongo1
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - olake-net
+
+  # Service 2: MongoDB Replica Set Initialize
+  mongo-init:
+    image: mongo:6.0
+    container_name: mongo_init
+    depends_on:
+      mongo1:
+        condition: service_healthy
+    entrypoint: >
+      bash -c "mongosh --host mongo1 --eval 'rs.initiate({_id: \"rs0\", members: [{_id: 0, host: \"mongo1:27017\"}]})'"
+    networks:
+      - olake-net
+    restart: "no"
+
+  # Service 3: MinIO Local S3 Storage (Iceberg files)
+  minio:
+    image: minio/minio:RELEASE.2025-04-03T14-56-28Z
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # MinIO Web UI
+    volumes:
+      - ./data/minio-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - olake-net
+
+  # Service 4: MinIO Bucket auto-create
+  mc:
+    image: minio/mc:RELEASE.2025-04-03T17-07-56Z
+    container_name: mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
+        /usr/bin/mc mb myminio/olake-iceberg --ignore-existing;
+        echo 'Bucket created!';
+        exit 0;
+      "
+    networks:
+      - olake-net
+    restart: "no"
+
+  # Service 5: PostgreSQL for Iceberg JDBC Catalog
+  iceberg-postgres:
+    image: postgres:15
+    container_name: iceberg-postgres
+    environment:
+      POSTGRES_USER: iceberg
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: iceberg
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U iceberg"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - olake-net
+
+networks:
+  olake-net:
+    driver: bridge

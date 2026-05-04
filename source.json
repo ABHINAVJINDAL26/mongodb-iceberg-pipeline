@@ -1,0 +1,13 @@
+{
+  "hosts": ["mongo1:27017"],
+  "username": "admin",
+  "password": "password",
+  "authdb": "admin",
+  "replica-set": "rs0",
+  "read-preference": "secondaryPreferred",
+  "srv": false,
+  "server-ram": 4,
+  "database": "shop",
+  "max_threads": 5,
+  "backoff_retry_count": 4
+}

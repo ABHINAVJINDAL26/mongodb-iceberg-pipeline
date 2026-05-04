@@ -1,0 +1,18 @@
+# Large log files
+spark_output.log
+spark_output2.log
+
+# OLake internal files
+pdf_content.txt
+read_pdf.py
+
+# Data directory (large parquet files)
+data/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,17 @@
+{
+  "type": "ICEBERG",
+  "writer": {
+    "catalog_type": "jdbc",
+    "jdbc_url": "jdbc:postgresql://iceberg-postgres:5432/iceberg",
+    "catalog_name": "olake_iceberg",
+    "jdbc_username": "iceberg",
+    "jdbc_password": "password",
+    "iceberg_s3_path": "s3://olake-iceberg/warehouse",
+    "s3_endpoint": "http://minio:9000",
+    "s3_use_ssl": false,
+    "s3_path_style": true,
+    "aws_access_key": "minioadmin",
+    "aws_region": "us-east-1",
+    "aws_secret_key": "minioadmin"
+  }
+}
