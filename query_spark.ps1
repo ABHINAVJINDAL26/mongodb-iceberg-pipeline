@@ -16,6 +16,9 @@ docker run -it --rm `
   --conf spark.sql.catalog.olake_iceberg.jdbc.user=iceberg `
   --conf spark.sql.catalog.olake_iceberg.jdbc.password=password `
   --conf spark.sql.catalog.olake_iceberg.warehouse=s3://olake-iceberg/warehouse `
+  --conf spark.sql.catalog.olake_iceberg.io-impl=org.apache.iceberg.aws.s3.S3FileIO `
+  --conf spark.sql.catalog.olake_iceberg.s3.endpoint=http://minio:9000 `
+  --conf spark.sql.catalog.olake_iceberg.s3.path-style-access=true `
   --conf spark.hadoop.fs.s3a.endpoint=http://minio:9000 `
   --conf spark.hadoop.fs.s3a.access.key=minioadmin `
   --conf spark.hadoop.fs.s3a.secret.key=minioadmin `

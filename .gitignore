@@ -1,6 +1,8 @@
 # Large log files
-spark_output.log
-spark_output2.log
+# Large log files
+spark_output*.log
+spark_results*.log
+discover_output.txt
 
 # OLake internal files
 state.json
@@ -19,6 +21,9 @@ data/
 # Python cache
 __pycache__/
 *.pyc
+
+# Java / Spark cache
+.ivy2/
 
 # OS files
 .DS_Store

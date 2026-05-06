@@ -2,37 +2,29 @@ version: "3.9"
 
 services:
 
-  # Service 1: MongoDB Source Database (Replica Set required for OLake)
+  # Service 1: MongoDB with Replica Set + Auth (via custom init script)
   mongo1:
     image: mongo:6.0
     container_name: primary_mongo
     hostname: mongo1
-    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
     ports:
       - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ./mongo-setup.sh:/mongo-setup.sh:ro
+    entrypoint: ["bash", "/mongo-setup.sh"]
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 10s
+      test: ["CMD", "mongosh", "--username", "admin", "--password", "password",
+             "--authenticationDatabase", "admin", "--quiet",
+             "--eval", "db.adminCommand('ping').ok", "localhost:27017/test"]
+      interval: 15s
       timeout: 10s
-      retries: 5
-      start_period: 40s
+      retries: 10
+      start_period: 60s
     networks:
       - olake-net
 
-  # Service 2: MongoDB Replica Set Initialize
-  mongo-init:
-    image: mongo:6.0
-    container_name: mongo_init
-    depends_on:
-      mongo1:
-        condition: service_healthy
-    entrypoint: >
-      bash -c "mongosh --host mongo1 --eval 'rs.initiate({_id: \"rs0\", members: [{_id: 0, host: \"mongo1:27017\"}]})'"
-    networks:
-      - olake-net
-    restart: "no"
-
-  # Service 3: MinIO Local S3 Storage (Iceberg files)
+  # Service 2: MinIO — Local S3 Storage (Iceberg files)
   minio:
     image: minio/minio:RELEASE.2025-04-03T14-56-28Z
     container_name: minio
@@ -53,7 +45,7 @@ services:
     networks:
       - olake-net
 
-  # Service 4: MinIO Bucket auto-create
+  # Service 3: MinIO Bucket auto-create
   mc:
     image: minio/mc:RELEASE.2025-04-03T17-07-56Z
     container_name: mc
@@ -71,7 +63,7 @@ services:
       - olake-net
     restart: "no"
 
-  # Service 5: PostgreSQL for Iceberg JDBC Catalog
+  # Service 4: PostgreSQL for Iceberg JDBC Catalog
   iceberg-postgres:
     image: postgres:15
     container_name: iceberg-postgres
@@ -88,6 +80,9 @@ services:
       retries: 5
     networks:
       - olake-net
+
+volumes:
+  mongo-data:
 
 networks:
   olake-net:
